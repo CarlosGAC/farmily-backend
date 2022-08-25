@@ -1,0 +1,41 @@
+{
+  "name": "farmily-backend",
+  "version": "1.0.0",
+  "description": "Backend for the Farmily Videogame",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsc": "tsc",
+    "start": "ts-node-dev --files --exit-child src/bin/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CarlosGAC/farmily-backend.git"
+  },
+  "keywords": [
+    "Backend",
+    "Videogame",
+    "Farmily",
+    "Unity"
+  ],
+  "author": "Carlos Acuña, Carlos García",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CarlosGAC/farmily-backend/issues"
+  },
+  "homepage": "https://github.com/CarlosGAC/farmily-backend#readme",
+  "devDependencies": {
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.13",
+    "@types/node": "^18.7.13",
+    "prisma": "^4.2.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@prisma/client": "^4.2.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1"
+  }
+}
