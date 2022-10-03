@@ -22,4 +22,4 @@ router.route("/:username").patch(updateUser);
 // Delete routes
 router.route("/:username").delete(deleteUser);
 
-export default router;
+module.exports = router;

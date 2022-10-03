@@ -13,4 +13,4 @@ router.route("/").get(getScores);
 // Post routes
 router.route("/").post(scoreOperation);
 
-export default router;
+module.exports = router;
