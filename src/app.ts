@@ -1,7 +1,6 @@
 import * as dotenv from "dotenv";
 import express, { Application } from "express";
 import cors from "cors";
-import ApiRoutes from "./routes/api.routes";
 
 export default class App {
     private app: Application;
@@ -26,7 +25,7 @@ export default class App {
     }
 
     private routes() {
-        this.app.use("/api", ApiRoutes);
+        this.app.use("/api", require("./routes/api.routes"));
     }
 
     async listen() {

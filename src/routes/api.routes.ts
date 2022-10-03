@@ -9,4 +9,4 @@ router.use("/user", UserRoutes);
 router.use("/score", ScoreRoutes);
 router.use("");
 
-export default router;
+module.exports = router;
