@@ -2,7 +2,7 @@
 ## At first time
 1. First at all, install all node modules with: npm install.
 2. Set the **DATABASE_URL** and **PORT** in `.env` file.
-3. Apply the [migrations](##Apply).
+3. Apply the [migrations](#apply).
 4. Run the **seeders** using `npx prisma db seed`.
 5. Use `npm run start` to run the server.
 ## Second time onwards
