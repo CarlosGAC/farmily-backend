@@ -9,3 +9,27 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  username String  @id @db.VarChar(255)
+  age      Int
+  Score    Score[]
+}
+
+model Level {
+  id    Int     @id @db.SmallInt
+  Score Score[]
+}
+
+model Score {
+  generalScore    Int    @db.SmallInt
+  productionScore Int    @db.SmallInt
+  healthScore     Int    @db.SmallInt
+  familyScore     Int    @db.SmallInt
+  user            User   @relation(fields: [username], references: [username])
+  username        String @db.VarChar(255)
+  level           Level  @relation(fields: [levelId], references: [id])
+  levelId         Int    @db.SmallInt
+
+  @@id([username, levelId])
+}

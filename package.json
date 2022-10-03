@@ -8,6 +8,9 @@
     "tsc": "tsc",
     "start": "ts-node-dev --files --exit-child src/bin/index.ts"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seeders/main.seeder.ts"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/CarlosGAC/farmily-backend.git"
