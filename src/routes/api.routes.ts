@@ -1,10 +1,11 @@
 import { Router } from "express";
 
-const router = Router();
+const userRoutes = require("./user.routes").user;
+const scoreRoutes = require("./score.routes").score;
+const api = Router();
 
 // Routes
-router.use("/user", require("./user.routes"));
-router.use("/score", require("./score.routes"));
-router.use("");
+api.use("/user", userRoutes);
+api.use("/score", scoreRoutes);
 
-module.exports = router;
+module.exports.api = api;

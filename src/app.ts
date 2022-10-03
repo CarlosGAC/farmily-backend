@@ -25,7 +25,8 @@ export default class App {
     }
 
     private routes() {
-        this.app.use("/api", require("./routes/api.routes"));
+        this.app.use("/api", require("./routes/api.routes").api);
+        
     }
 
     async listen() {

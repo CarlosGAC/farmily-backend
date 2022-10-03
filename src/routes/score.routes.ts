@@ -4,13 +4,13 @@ import {
     scoreOperation,
 } from "../controllers/score.controller";
 
-const router = Router();
+const score = Router();
 
 // Get routes
-router.route("/:levelId").get(getScores);
-router.route("/").get(getScores);
+score.route("/:levelId").get(getScores);
+score.route("/").get(getScores);
 
 // Post routes
-router.route("/").post(scoreOperation);
+score.route("/").post(scoreOperation);
 
-module.exports = router;
+module.exports.score = score;

@@ -7,19 +7,19 @@ import {
     updateUser
 } from "../controllers/user.controller";
 
-const router = Router();
+const user = Router();
 
 // Get routes
-router.route("/:username").get(getUser);
-router.route("/").get(getUsers);
+user.route("/:username").get(getUser);
+user.route("/").get(getUsers);
 
 // Post routes
-router.route("/").post(createUser);
+user.route("/").post(createUser);
 
 // Patch routes
-router.route("/:username").patch(updateUser);
+user.route("/:username").patch(updateUser);
 
 // Delete routes
-router.route("/:username").delete(deleteUser);
+user.route("/:username").delete(deleteUser);
 
-module.exports = router;
+module.exports.user = user;
