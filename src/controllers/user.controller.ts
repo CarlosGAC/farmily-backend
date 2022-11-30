@@ -2,21 +2,24 @@ import { Prisma, User } from "@prisma/client";
 import { Request, Response } from "express";
 import DBClient from "../database/client.database";
 import { errorHandler } from "../utils/error-handler.util";
+import bcrypt from "bcrypt"
+import { getHashedPassword } from "../utils/password.util";
 
 export async function getUser(
     req: Request,
     res: Response
 ): Promise<Response | void> {
     const { username } = req.params;
-    console.log(username);
-    const user = await getUserById(username);
+    const user = await getUserByUsername(username);
 
     if (!user) return res.status(403).json({
         status: false,
         message: "El usuario solicitado no existe"
     });
 
-    res.json({ ...user });
+    const { password, ...userWithoutPassword } = user;
+
+    res.json({ ...userWithoutPassword });
 }
 
 export async function getUsers(
@@ -25,7 +28,16 @@ export async function getUsers(
 ): Promise<Response | void> {
     const prisma = DBClient.instance;
     const usersCount = await prisma.user.count();
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+        select: {
+            userId: true,
+            username: true,
+            password: false,
+            age: true,
+            userLevel: true,
+            levelProgress: true
+        }
+    });
 
     prisma.$disconnect();
     // Pagination settings
@@ -51,6 +63,7 @@ export async function createUser(
     res: Response
 ): Promise<Response | void> {
     const { username, age } = req.body;
+    let { password } = req.body;
 
     if (typeof (age) != "number") return res.status(403).json({
         status: false,
@@ -58,21 +71,27 @@ export async function createUser(
     });
 
     try {
+        password = await getHashedPassword(password);
+
         const prisma = DBClient.instance;
         const user = Prisma.validator<Prisma.UserCreateInput>()({
             username,
+            password,
             age
         });
 
         // Create user process
-        await prisma.user.create({
-            data: user
-        });
+        const createdUser = await prisma.user.create({ data: user });
 
         // Return response
         res.json({
             status: true,
-            data: user
+            data: {
+                userId: createdUser.userId,
+                username: createdUser.username,
+                userLevel: createdUser.userLevel,
+                levelProgress: createdUser.levelProgress
+            }
         });
     } catch (error) {
         const message = errorHandler(error);
@@ -90,7 +109,7 @@ export async function updateUser(
     res: Response
 ): Promise<Response | void> {
     const { username } = req.params;
-    const { age, new_username } = req.body;
+    const { password, age, userLevel, levelProgress, newUsername } = req.body;
 
     if (typeof (age) != "number") return res.status(403).json({
         status: false,
@@ -102,8 +121,13 @@ export async function updateUser(
         let user;
         let userUpdated: User;
 
-        if (!new_username) {
-            user = Prisma.validator<Prisma.UserUpdateInput>()({ age });
+        if (!newUsername) {
+            user = Prisma.validator<Prisma.UserUpdateInput>()({
+                password,
+                age,
+                userLevel,
+                levelProgress
+            });
 
             userUpdated = await prisma.user.update({
                 where: { username },
@@ -111,8 +135,11 @@ export async function updateUser(
             });
         } else {
             user = Prisma.validator<Prisma.UserUpdateInput>()({
-                username: new_username,
-                age
+                username: newUsername,
+                password,
+                age,
+                userLevel,
+                levelProgress
             });
 
             userUpdated = await prisma.user.update({
@@ -121,10 +148,12 @@ export async function updateUser(
             });
         }
 
+        const { password: pass, ...userUpdatedWithoutPassword } = userUpdated;
+
         // Return response
         res.json({
             status: true,
-            data: userUpdated
+            data: userUpdatedWithoutPassword
         });
     } catch (error) {
         const message = errorHandler(error);
@@ -142,7 +171,7 @@ export async function deleteUser(
     res: Response
 ): Promise<Response | void> {
     const { username } = req.params;
-    const user = await getUserById(username);
+    const user = await getUserByUsername(username);
 
     if (!user) return res.status(404).json({
         status: false,
@@ -163,7 +192,7 @@ export async function deleteUser(
     }
 }
 
-export async function getUserById(username: string): Promise<User | void> {
+export async function getUserByUsername(username: string): Promise<User | void> {
     try {
         const prisma = DBClient.instance;
         const requestedUser = await prisma.user.findUnique({
@@ -178,5 +207,59 @@ export async function getUserById(username: string): Promise<User | void> {
         return requestedUser;
     } catch (error) {
         console.error(error);
+    }
+}
+
+export async function getUserById(userId: number): Promise<User | void> {
+    try {
+        const prisma = DBClient.instance;
+        const requestedUser = await prisma.user.findUnique({
+            where: { userId }
+        });
+
+        // Close prisma connection
+        prisma.$disconnect();
+
+        if (!requestedUser) return;
+
+        return requestedUser;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export async function loginUser(
+    req: Request,
+    res: Response
+): Promise<Response | void> {
+    const { username, password } = req.body;
+
+    try {
+        const user = await getUserByUsername(username);
+
+        if (!user) return res.status(403).json({
+            status: false,
+            message: "El usuario no existe"
+        });
+
+        const validPassword = user != null ? await bcrypt.compare(password, user.password || "") : false;
+
+        if (validPassword) {
+            const { password: pass, age, ...userWithoutPassword } = user;
+
+            return res.json({
+                status: true,
+                data: userWithoutPassword
+            });
+        } else {
+            return res.status(403).json({
+                status: false,
+                message: "El username y/o contraseña son inválidos."
+            });
+        }
+    } catch (error) {
+        console.error(error);
+
+        return res.json({ error });
     }
 }

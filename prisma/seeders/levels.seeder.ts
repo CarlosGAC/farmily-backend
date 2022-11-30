@@ -16,6 +16,6 @@ export default class LevelsSeeder {
             levels.push({ id: x });
         }
 
-        await this.prisma.level.createMany({ data: levels });
+        await this.prisma.gameplayLevel.createMany({ data: levels });
     }
 }

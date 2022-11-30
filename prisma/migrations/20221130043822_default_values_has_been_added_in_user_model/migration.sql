@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `User` MODIFY `levelProgress` INTEGER NOT NULL DEFAULT 0,
+    MODIFY `userLevel` SMALLINT NOT NULL DEFAULT 1;

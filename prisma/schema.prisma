@@ -2,39 +2,43 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider             = "mysql"
-  url                  = env("DATABASE_URL")
-  shadowDatabaseUrl    = env("SHADOW_DATABASE_URL")
-  referentialIntegrity = "prisma"
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  relationMode      = "prisma"
 }
 
 model User {
-  username String  @id @db.VarChar(255)
-  age      Int
-  Score    Score[]
+  userId        Int     @id @default(autoincrement())
+  username      String  @unique @db.VarChar(20)
+  password      String  @db.VarChar(255)
+  age           Int
+  userLevel     Int     @default(1) @db.SmallInt
+  levelProgress Int     @default(0)
+  Score         Score[]
 }
 
-model Level {
+model GameplayLevel {
   id    Int     @id @db.SmallInt
   Score Score[]
 }
 
 model Score {
-  generalScore    Int    @db.SmallInt
-  productionScore Int    @db.SmallInt
-  healthScore     Int    @db.SmallInt
-  familyScore     Int    @db.SmallInt
-  user            User   @relation(fields: [username], references: [username])
-  username        String @db.VarChar(255)
-  level           Level  @relation(fields: [levelId], references: [id])
-  levelId         Int    @db.SmallInt
+  generalScore        Int           @db.SmallInt
+  productionScore     Int           @db.SmallInt
+  sustainabilityScore Int           @db.SmallInt
+  familyScore         Int           @db.SmallInt
+  economyScore        Int           @db.SmallInt
+  user                User          @relation(fields: [userId], references: [userId])
+  userId              Int
+  gameplayLevel       GameplayLevel @relation(fields: [gameplayLevelId], references: [id])
+  gameplayLevelId     Int           @db.SmallInt
 
-  @@id([username, levelId])
-  @@index([levelId])
-  @@index([username])
+  @@id([userId, gameplayLevelId])
+  @@index([gameplayLevelId])
+  @@index([userId])
 }

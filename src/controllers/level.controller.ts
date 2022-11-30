@@ -1,10 +1,10 @@
-import { Level } from "@prisma/client";
+import { GameplayLevel } from "@prisma/client";
 import DBClient from "../database/client.database";
 
-export async function getLevelById(id: number): Promise<Level | void> {
+export async function getLevelById(id: number): Promise<GameplayLevel | void> {
     try {
         const prisma = DBClient.instance;
-        const requestedLevel = await prisma.level.findUnique({
+        const requestedLevel = await prisma.gameplayLevel.findUnique({
             where: { id }
         });
 

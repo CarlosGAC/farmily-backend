@@ -12,7 +12,7 @@ export async function getScores(
 ): Promise<Response | void> {
     const prisma = DBClient.instance;
     // Query
-    const levelId: number = Number(req.params.levelId) || -1;
+    const gameplayLevelId: number = Number(req.params.gameplayLevelId) || -1;
     // Pagination settings
     const page: any = req.query.page || 1;
     const limit: any = req.query.limit || 10;
@@ -20,16 +20,17 @@ export async function getScores(
     let scoresCount: number;
     let scores: Score[];
 
-    if (levelId != -1) {
+    if (gameplayLevelId != -1) {
         scoresCount = await prisma.score.count({
-            where: { levelId }
+            where: { gameplayLevelId }
         });
 
         scores = await prisma.score.findMany({
             skip: limit * (page - 1),
             take: parseInt(limit),
-            where: { levelId },
-            orderBy: { generalScore: "desc" }
+            where: { gameplayLevelId },
+            orderBy: { generalScore: "desc" },
+            include: { user: true }
         });
     } else {
         scoresCount = await prisma.score.count();
@@ -37,7 +38,8 @@ export async function getScores(
         scores = await prisma.score.findMany({
             skip: limit * (page - 1),
             take: parseInt(limit),
-            orderBy: { generalScore: "desc" }
+            orderBy: { generalScore: "desc" },
+            include: { user: true }
         });
     }
 
@@ -62,26 +64,27 @@ export async function scoreOperation(
     req: Request,
     res: Response
 ): Promise<Response | void> {
-    const { username, levelId, generalScore,
-        productionScore, healthScore, familyScore } = req.body;
-    const numbersValidation: ResponseObject = validateScoresAndLevel(levelId,
-        generalScore, productionScore, healthScore, familyScore);
+    const { userId, gameplayLevelId, generalScore,
+        productionScore, economyScore, familyScore, sustainabilityScore } = req.body;
+    const numbersValidation: ResponseObject = validateScoresAndLevel(gameplayLevelId,
+        generalScore, productionScore, economyScore, familyScore, sustainabilityScore);
 
     // Validates if there are numbers in the score
     if (!numbersValidation.status) return res.status(403).json(numbersValidation);
 
     // Creates score object
     const currentScore: Score = {
-        username,
-        levelId,
+        userId,
+        gameplayLevelId,
         generalScore,
         productionScore,
-        healthScore,
-        familyScore
+        familyScore,
+        economyScore,
+        sustainabilityScore
     }
 
     try {
-        const previousScore = await getScoreByIds(currentScore.username, currentScore.levelId);
+        const previousScore = await getScoreByIds(currentScore.userId, currentScore.gameplayLevelId);
 
         if (previousScore) await updateScore(currentScore, previousScore, res);
         else await createScore(currentScore, res);
@@ -103,8 +106,8 @@ async function createScore(
 ): Promise<Response | void> {
     try {
         const prisma = DBClient.instance;
-        const user = await getUserById(score.username);
-        const level = await getLevelById(score.levelId);
+        const user = await getUserById(score.userId);
+        const level = await getLevelById(score.gameplayLevelId);
         let response: ResponseObject;
 
         if (!user || !level) {
@@ -150,9 +153,9 @@ async function updateScore(
         const scoreUpdated = await prisma.score.update({
             data: currentScore,
             where: {
-                username_levelId: {
-                    username: currentScore.username,
-                    levelId: currentScore.levelId
+                userId_gameplayLevelId: {
+                    userId: currentScore.userId,
+                    gameplayLevelId: currentScore.gameplayLevelId
                 }
             }
         });
@@ -175,13 +178,14 @@ async function updateScore(
 }
 
 function validateScoresAndLevel(
-    levelId: number,
+    gameplayLevelId: number,
     generalScore: number,
     productionScore: number,
     healthScore: number,
-    familyScore: number
+    familyScore: number,
+    sustainabilityScore: number
 ): ResponseObject {
-    if (typeof (levelId) != "number") return ({
+    if (typeof (gameplayLevelId) != "number") return ({
         status: false,
         message: "El nivel debe de ser un número válido"
     });
@@ -206,21 +210,26 @@ function validateScoresAndLevel(
         message: "El puntaje de familia debe de ser un número válido"
     });
 
+    if (typeof (sustainabilityScore) != "number" || sustainabilityScore < 0 || sustainabilityScore > 5) return ({
+        status: false,
+        message: "El puntaje de sustentabilidad debe de ser un número válido"
+    });
+
     return ({ status: true });
 }
 
 
 async function getScoreByIds(
-    username: string,
-    levelId: number
+    userId: number,
+    gameplayLevelId: number
 ): Promise<Score | void> {
     try {
         const prisma = DBClient.instance;
         const requestedScore = await prisma.score.findUnique({
             where: {
-                username_levelId: {
-                    username,
-                    levelId
+                userId_gameplayLevelId: {
+                    userId,
+                    gameplayLevelId
                 }
             }
         });
